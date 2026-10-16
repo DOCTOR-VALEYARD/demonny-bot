@@ -1,0 +1,38 @@
+[15:40:27] $ pkg update -y -o Dpkg::Options::=--force-confold
+No mirror or mirror group selected. You might want to select one by running 'termux-change-repo'
+Checking availability of current mirror:
+[*] https://mirrors.cqupt.edu.cn/termux/termux-main: ok
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 https://mirrors.cqupt.edu.cn/termux/termux-main stable InRelease
+Reading package lists...
+Building dependency tree...
+Reading state information...
+All packages are up to date.
+[15:40:32] $ pkg upgrade -y -o Dpkg::Options::=--force-confold
+No mirror or mirror group selected. You might want to select one by running 'termux-change-repo'
+Checking availability of current mirror:
+[*] https://mirrors.cqupt.edu.cn/termux/termux-main: ok
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Hit:1 https://mirrors.cqupt.edu.cn/termux/termux-main stable InRelease
+Reading package lists...
+Building dependency tree...
+Reading state information...
+All packages are up to date.
+
+WARNING: apt does not have a stable CLI interface. Use with caution in scripts.
+
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Calculating upgrade...
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+[15:40:38] $ pip install -U yt-dlp --break-system-packages
+Requirement already satisfied: yt-dlp in /data/data/com.termux/files/usr/lib/python3.14/site-packages (2026.8.19)
+[15:40:40] $ bash -c npm config set fetch-retries 5 && npm config set fetch-retry-mintimeout 10000 && npm config set fetch-retry-maxtimeout 60000 && npm config set audit false && npm config set fund false
+[15:40:45] $ npm install --no-audit --no-fund --legacy-peer-deps
+
+added 276 packages in 17s

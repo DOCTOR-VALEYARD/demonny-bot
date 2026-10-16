@@ -1,0 +1,7 @@
+Coloque aqui os áudios do ANTI-AMOR (mp3, ogg, m4a, opus ou wav), com qualquer nome.
+Quando alguém mandar uma palavra carinhosa (amor, meu bem, minha vida, te amo...),
+com o anti-amor ligado no grupo (<prefixo>antiamor on), o bot sorteia um áudio daqui
+e manda marcando a pessoa.
+Subir pelo bot: configurar-bot > SUBIR ÁUDIO > ANTI-AMOR (o nome é criado sozinho).
+Apagar pelo bot: configurar-bot > APAGAR ÁUDIO > ANTI-AMOR.
+Lista de palavras: src/antiamor/antiamor.js (PALAVRAS_CARINHOSAS).

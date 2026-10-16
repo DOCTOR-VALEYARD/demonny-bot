@@ -1,0 +1,13 @@
+{
+  "CONFIG_CODE": "1234",
+  "BOT_PHOTO": "./src/midias/videos/menu.mp4",
+  "PREFIX": "/",
+  "OWNER_NUMBER": "556399312175",
+  "OWNER_NAME": "𝗔𝗡𝗝𝗜𝗡𝗛𝗢 𝗗𝗘𝗠𝗢𝗡𝗡𝗬🇱🇦🇬🇬🇧🇱",
+  "CHANNEL_URL": "https://chat.whatsapp.com/F8pM4nHULoOH7umVBmAchX?s=cl&p=a&mlu=4&ilr=4",
+  "BOT_NAME": "DEMONNY",
+  "BOT_FUNDO": "./src/midias/imagens/fundo.png",
+  "BOT_FUNDO_ANIMADO": true,
+  "BOT_PHOTO_GIF": true,
+  "GIPHY_API_KEY": "42qTuB1yFOXVvzBJ7b508jzwkmawO9iH"
+}
