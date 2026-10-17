@@ -22,6 +22,7 @@ const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const os = require('os');
 const axios = require('axios');
 
 const config = require('../../config');
@@ -66,16 +67,92 @@ async function baixarTikTokDireto(url, destino) {
     return { titulo: dados.title || "TikTok" };
 }
 
+// =================================================
+// ⬇️ yt-dlp AUTOMÁTICO (hospedagem sem root / sem apt)
+// =================================================
+// Baixa o binário standalone do yt-dlp (não precisa de Python) pra dentro
+// da pasta do bot e reaproveita. Atualiza sozinho a cada 7 dias.
+
+function pastaEscrevivel() {
+    for (const dir of [process.cwd(), path.join(__dirname, '..', '..'), os.tmpdir()]) {
+        try { fs.accessSync(dir, fs.constants.W_OK); return dir; } catch {}
+    }
+    return os.tmpdir();
+}
+
+const YTDLP_PATH = path.join(pastaEscrevivel(), 'yt-dlp');
+const YTDLP_URL = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
+const YTDLP_MAX_IDADE_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Cookies opcionais: se existir cookies.txt na pasta do bot, é usado sozinho.
+const COOKIES_PATH = [
+    path.join(process.cwd(), 'cookies.txt'),
+    path.join(__dirname, 'cookies.txt'),
+    path.join(__dirname, '..', '..', 'cookies.txt')
+].find(p => fs.existsSync(p)) || null;
+
+function baixarArquivo(url, destino, redir = 5) {
+    return new Promise((resolve, reject) => {
+        https.get(url, { headers: { 'User-Agent': 'node' } }, res => {
+            if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+                res.resume();
+                if (redir <= 0) return reject(new Error('Redirecionamentos demais'));
+                return resolve(baixarArquivo(res.headers.location, destino, redir - 1));
+            }
+            if (res.statusCode !== 200) { res.resume(); return reject(new Error('HTTP ' + res.statusCode)); }
+            const arq = fs.createWriteStream(destino);
+            res.pipe(arq);
+            arq.on('finish', () => arq.close(() => resolve()));
+            arq.on('error', reject);
+            res.on('error', reject);
+        }).on('error', reject);
+    });
+}
+
+let ytdlpPromise = null;
+
+function garantirYtDlp() {
+    const bin = config.MUSICA?.BINARIO;
+    if (bin && bin !== 'yt-dlp') return Promise.resolve(bin);
+    if (ytdlpPromise) return ytdlpPromise;
+
+    ytdlpPromise = (async () => {
+        const existe = fs.existsSync(YTDLP_PATH);
+        if (existe) {
+            let velho = false;
+            try { velho = Date.now() - fs.statSync(YTDLP_PATH).mtimeMs > YTDLP_MAX_IDADE_MS; } catch {}
+            if (!velho) return YTDLP_PATH;
+        }
+        console.log(existe ? '🔄 Atualizando yt-dlp...' : '⬇️ Baixando yt-dlp...');
+        const temp = YTDLP_PATH + '.novo';
+        try {
+            await baixarArquivo(YTDLP_URL, temp);
+            fs.chmodSync(temp, 0o755);
+            fs.renameSync(temp, YTDLP_PATH);
+            console.log('✅ yt-dlp pronto em ' + YTDLP_PATH);
+        } catch (erro) {
+            try { fs.unlinkSync(temp); } catch {}
+            console.log('❌ Falha ao baixar yt-dlp: ' + erro.message);
+            if (!existe) {
+                ytdlpPromise = null;
+                throw new Error('yt-dlp não está instalado e não consegui baixar: ' + erro.message);
+            }
+        }
+        return YTDLP_PATH;
+    })();
+    return ytdlpPromise;
+}
+
+garantirYtDlp().catch(() => {});
+
 function comandoBase() {
-
-    const extra =
-        config.MUSICA?.ARGS_EXTRA
-            ? ` ${config.MUSICA.ARGS_EXTRA}`
-            : "";
-
-    return `${
-        config.MUSICA?.BINARIO || "yt-dlp"
-    }${extra}`;
+    const extra = config.MUSICA?.ARGS_EXTRA ? ` ${config.MUSICA.ARGS_EXTRA}` : "";
+    const binConfig = config.MUSICA?.BINARIO;
+    const bin = (binConfig && binConfig !== 'yt-dlp')
+        ? binConfig
+        : (fs.existsSync(YTDLP_PATH) ? `"${YTDLP_PATH}"` : 'yt-dlp');
+    const cookies = COOKIES_PATH ? ` --cookies "${COOKIES_PATH}"` : "";
+    return `${bin} --js-runtimes node${cookies}${extra}`;
 }
 
 // =================================================
@@ -656,8 +733,7 @@ function resolverRedirect(url, tentativas = 0) {
             resolve(url);
         }
     });
-}
-
+   }
 // =================================================
 // 🎵 COMANDO PRINCIPAL
 // =================================================
@@ -838,6 +914,7 @@ async function pesquisarResultadoYoutubei(busca, limite = 5) {
 }
 
 async function pesquisarResultadoYtDlp(busca, limite = 5) {
+    await garantirYtDlp();
     const link = busca.match(/https?:\/\/[^\s]+/i)?.[0]?.replace(/[),.;]+$/, "");
     const alvo = link
         ? link
@@ -1085,7 +1162,7 @@ async function baixarResultadoPlay(sock, msg, token, modo, opcoes = {}) {
         // baixado é enviado no formato original.
         const clientes = [
             '--extractor-args "youtube:player_client=android,ios"',
-            '--js-runtimes node --extractor-args "youtube:player_client=android"',
+            '--extractor-args "youtube:player_client=android"',
             ''
         ];
 
@@ -1103,6 +1180,7 @@ async function baixarResultadoPlay(sock, msg, token, modo, opcoes = {}) {
 
         // ---------- yt-dlp ----------
         const rodarYtDlp = async (tmpl, ctl) => {
+            try { await garantirYtDlp(); } catch (e) { ultimoErro = e; return null; }
             for (const candidato of alvosYt) {
                 if (ctl?.cancelado) return null;
                 const alvo = String(candidato.webpage_url || candidato.url || resultado.url || "").replace(/"/g, '\\"');
@@ -1177,18 +1255,7 @@ async function baixarResultadoPlay(sock, msg, token, modo, opcoes = {}) {
             const hedgeMs = Number(config.MUSICA?.HEDGE_MS ?? 3500);
             const ctlApi = { cancelado: false };
             const ctlYt = { cancelado: false, filho: null };
-            const tmplApi = `${template}_api`;
-            const tmplYt = `${template}_yt`;
-
-            const apiP = rodarApi(tmplApi, ctlApi).catch(() => null);
-            const ytP = (async () => {
-                let apiRes = null;
-                await Promise.race([apiP.then(r => { apiRes = r; }), dormir(hedgeMs)]);
-                if (apiRes) return null; // API já entregou
-                return rodarYtDlp(tmplYt, ctlYt);
-            })().catch(() => null);
-
-            const vencedor = await new Promise(resolve => {
+ const vencedor = await new Promise(resolve => {
                 let restantes = 2;
                 const fim = () => { if (--restantes === 0) resolve(null); };
                 apiP.then(r => { if (r) resolve(r); }).finally(fim);
@@ -1290,3 +1357,4 @@ exports.processarEscolhaPlay = async function(sock, msg, idBotao) {
     await baixarResultadoPlay(sock, msg, token, modo, { silencioso: true });
     return true;
 };
+           
