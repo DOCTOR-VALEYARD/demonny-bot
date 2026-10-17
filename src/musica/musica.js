@@ -733,7 +733,8 @@ function resolverRedirect(url, tentativas = 0) {
             resolve(url);
         }
     });
-   }
+}
+
 // =================================================
 // 🎵 COMANDO PRINCIPAL
 // =================================================
@@ -1255,7 +1256,18 @@ async function baixarResultadoPlay(sock, msg, token, modo, opcoes = {}) {
             const hedgeMs = Number(config.MUSICA?.HEDGE_MS ?? 3500);
             const ctlApi = { cancelado: false };
             const ctlYt = { cancelado: false, filho: null };
- const vencedor = await new Promise(resolve => {
+            const tmplApi = `${template}_api`;
+            const tmplYt = `${template}_yt`;
+
+            const apiP = rodarApi(tmplApi, ctlApi).catch(() => null);
+            const ytP = (async () => {
+                let apiRes = null;
+                await Promise.race([apiP.then(r => { apiRes = r; }), dormir(hedgeMs)]);
+                if (apiRes) return null; // API já entregou
+                return rodarYtDlp(tmplYt, ctlYt);
+            })().catch(() => null);
+
+            const vencedor = await new Promise(resolve => {
                 let restantes = 2;
                 const fim = () => { if (--restantes === 0) resolve(null); };
                 apiP.then(r => { if (r) resolve(r); }).finally(fim);
@@ -1357,4 +1369,3 @@ exports.processarEscolhaPlay = async function(sock, msg, idBotao) {
     await baixarResultadoPlay(sock, msg, token, modo, { silencioso: true });
     return true;
 };
-           
