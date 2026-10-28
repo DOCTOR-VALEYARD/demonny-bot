@@ -203,13 +203,13 @@ function extrairComandosDoBot() {
 }
 
 const CATEGORIAS = {
-  '🎵 MÚSICAS': ['play','demonny-yt','video','tiktok','instagram','kwai','pinterest','mediafire','gtts','tomp3','voz','esquilo','grave','demonio','robo','eco','nightcore','rapido','lento','radio','s','addfigurinha','gif','toimg','artenome','artenomegif','meme'],
-  '🛠️ FERRAMENTAS': ['calc','calculadora','base64','md5','hashmd5','spoiler','encurtar','encurtador','encurtarlink','qrcode','qr','qr-code','wiki','traduzir','tradutor','celular','tempo','esporte_noticias','me','tang','info','avalie','bug','sugestao','ping','meuid'],
+  '🎵 MÚSICAS': ['play','demonny-yt','video','tiktok','instagram','kwai','pinterest','mediafire','gtts','tomp3','voz','esquilo','grave','demonio','robo','eco','nightcore','rapido','lento','radio','s','addfigurinha','togif','toimg','artenome','artenomegif','meme'],
+  '🛠️ FERRAMENTAS': ['nick','tabela','geralink','calc','calculadora','base64','md5','hashmd5','spoiler','encurtar','encurtador','encurtarlink','qrcode','qr','qr-code','wiki','traduzir','tradutor','celular','tempo','esporte_noticias','me','tang','info','avalie','bug','sugestao','ping','meuid'],
   '👤 MEMBROS': ['alugarbot','meualuguel','membros','registrar','delregistro','perfil','inforegistrar','infoperfil','advertidos','mutados','infoadv','infomute','infobot','atividades','resumo','historico','conquistas','botstatus','top10','rankativo','rank'],
   '💰 ECONOMIA': ['saldo','moedas','checkin','checkinauto','trabalhar','roubar','transferir','depositar','sacar','extrato','inventario','bonus','premio','xp','nivel','loja','duelo','resgatar','token','gastar','topgold','topxp','topamizade','topcasais','casal','amizade','compatibilidade','dupla','familia','familias','casamento','meucasal','divorcio','presente','presentes','missoes','missao'],
   '🎮 BRINCADEIRAS': ['forca','adivinha','quiz','jogodavelha','aleatory','roleta','sortear','signo','enquete','tapa','matar','beijar','abracar','amizade','compatibilidade','dupla','casal','familia','familias','casamento','meucasal','divorcio','topcasais'],
-  '🛡️ ADMIN': ['mute','unmute','warn','unwarn','autoban','marcar','hidetag','citar','regras','grupo','convite','promover','rebaixar','antilink','antinota','antinudes','antifake','ban','kick','abrir','fechar','aviso','bemvindo','sair','saudacao','antiamor','aceitar','mencao','adms','antipalavrao','demonny-antipalavrao','demonny-auto','demonny1','demonny0','lista','listra','blacklist','demonny-lista','tirarlista','removerlista','delblacklist','add','demonny-add','modulos','limparbot','logban','historico-ban','relatorio','relatoriodiario','manutencao'],
-  '👑 DONO': ['ligar','desligar','restart','broadcast','boot','backup','configaniversario','configaniversario-reset','alugar']
+  '🛡️ ADMIN': ['antitrava','antip','antib','antir','antig','mute','unmute','warn','unwarn','autoban','marcar','hidetag','citar','regras','grupo','convite','promover','rebaixar','antilink','antinota','antinudes','antifake','ban','kick','abrir','fechar','aviso','bemvindo','sair','saudacao','antiamor','aceitar','mencao','adms','antipalavrao','demonny-antipalavrao','demonny-auto','demonny1','demonny0','lista','listra','blacklist','demonny-lista','tirarlista','removerlista','delblacklist','add','demonny-add','modulos','limparbot','logban','historico-ban','relatorio','relatoriodiario','manutencao'],
+  '👑 DONO': ['nuke','setlink','ligar','desligar','restart','broadcast','boot','backup','configaniversario','configaniversario-reset','alugar']
 };
 
 const SUBCATEGORIAS = {
@@ -321,14 +321,15 @@ async function enviarListaWhatsApp(sock, jid, {
   footer,
   quoted,
   mentions,
-  extraButtons = []
+  extraButtons = [],
+  imageBuffer
 } = {}) {
   const buttons = [botaoLista(title, sections), ...extraButtons];
   return enviarNativeFlow(sock, jid, {
     text: text || `〔 ${title} 〕`,
     footer: footer || config.BOT_NAME || 'Demonny Bot',
     buttons,
-    ...obterMidiaMenuAtual(),
+    ...(imageBuffer ? { imageBuffer } : obterMidiaMenuAtual()),
     quoted,
     mentions
   });
@@ -367,6 +368,7 @@ async function enviarListaPrincipal(sock, jid, msg) {
       botao('BY : 𝗔𝗡𝗝𝗜𝗡𝗛𝗢 𝗗𝗘𝗠𝗢𝗡𝗡𝗬🇱🇦🇬🇬🇧🇱', 'zoar_dono'),
       botaoUrl('📢 ENTRAR NO CANAL', obterLinkCanalConfig() || config.CHANNEL_URL || ''),
       botaoUrl('💬 FALAR COM O CRIADOR', linkFalarComCriador() || ''),
+      botaoUrl('👥 ENTRAR NO GRUPO', config.GROUP_URL || ''),
       botao('🏘️ ALUGAR O BOT', 'vip_planos')
     ].filter(b => b.buttonParamsJson && !b.buttonParamsJson.includes('"url":""'))
   });
@@ -428,7 +430,7 @@ function comandoPrecisaEntrada(command) {
   return new Set([
     'play','musica','demonny-yt','video','baixarvideo','tiktok','instagram','kwai','pinterest','mediafire','media-fire',
     'gtts','tomp3','artenome','artenomegif','meme','signo','tempo','celular','wiki','traduzir','tradutor',
-    'calc','calculadora','base64','md5','hashmd5','spoiler','encurtar','encurtador','encurtarlink','qrcode','qr','qr-code',
+    'nick','calc','calculadora','base64','md5','hashmd5','spoiler','encurtar','encurtador','encurtarlink','qrcode','qr','qr-code',
     'roubar','transferir','depositar','sacar','presente','resgatar','token','gastar','warn','unwarn','mute','unmute',
     'autoban','configaniversario','manutencao','broadcast','spam','add','demonny-prt','demonny-ptr','caca','caça','tang',
     'quando','chance','vab','adivinharnmr','configurar-bot','matar','tapa','beijar','abracar','chute'
@@ -441,6 +443,7 @@ function textoPrompt(command) {
   if (['play','musica'].includes(c)) return '🎵 Qual música você deseja baixar?\n\nDigite somente o nome da música.';
   if (['video','baixarvideo'].includes(c)) return '🎬 Qual vídeo você deseja baixar?\n\nDigite o nome ou envie o link.';
   if (['tiktok','instagram','kwai','pinterest','mediafire','media-fire'].includes(c)) return `🔗 Envie o link para *${c}*.`;
+  if (c === 'nick') return '✨ Digite o nome que você quer transformar em nick.';
   if (c === 'configurar-bot') return '⚙️ Envie a configuração que deseja alterar. Ex.: *prefixo !*';
   return `✍️ Envie agora os dados necessários para *${c}*.`;
 }
@@ -672,7 +675,7 @@ function obterLinkCanalConfig() {
 // Mudar a mensagem AQUI atualiza em todos os botões do bot de uma vez.
 // ================================================================
 function linkFalarComCriador() {
-  const numero = String(config.OWNER_NUMBER || '').replace(/\D/g, '');
+  const numero = require('../links/links').numeroDoContato();
   if (!numero) return null;
   const mensagem = 'Olá, 𝗔𝗡𝗝𝗜𝗡𝗛𝗢 𝗗𝗘𝗠𝗢𝗡𝗡𝗬🇱🇦🇬🇬🇧🇱! Tenho interesse no Demonny Bot. Pode me passar os planos e valores disponíveis?';
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;

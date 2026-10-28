@@ -22,6 +22,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { arquivoTemp } = require("../pasta-temp/pasta-temp");
 const { exec } = require("child_process");
 
 const extensoesValidas = [".mp3", ".ogg", ".m4a", ".opus", ".wav"];
@@ -81,7 +82,7 @@ async function enviarAudioDaPasta(sock, chatId, nomePasta, { mentions, quoted } 
     const caminhoOrigem = pegarCaminhoAleatorio(nomePasta);
     if (!caminhoOrigem) return false;
 
-    const caminhoTemp = path.join(os.tmpdir(), `voz_${Date.now()}_${Math.floor(Math.random()*9999)}.ogg`);
+    const caminhoTemp = arquivoTemp(`voz_${Date.now()}_${Math.floor(Math.random()*9999)}.ogg`);
 
     try {
         // Se já for .ogg, tenta converter mesmo assim (garante que o

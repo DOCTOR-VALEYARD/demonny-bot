@@ -83,6 +83,11 @@ async function menuadm(sock, msg) {
 > 🌸 ${config.PREFIX}ᵃⁿᵗⁱᵖᵃˡᵃᵛʳᵃᵒ
 > 🌸 ${config.PREFIX}ᵃⁿᵗⁱˢᵖᵃᵐ
 > 🌸 ${config.PREFIX}ᵃⁿᵗⁱᶠˡᵒᵒᵈ
+> 🌸 ${config.PREFIX}ᵃⁿᵗⁱᵗʳᵃᵛᵃ
+> 🌸 ${config.PREFIX}ᵃⁿᵗⁱᵖ
+> 🌸 ${config.PREFIX}ᵃⁿᵗⁱᵇ
+> 🌸 ${config.PREFIX}ᵃⁿᵗⁱʳ
+> 🌸 ${config.PREFIX}ᵃⁿᵗⁱᵍ
 > 🌸 ${config.PREFIX}ᵈᵉᵐᵒⁿⁿʸ-ᵃᵘᵗᵒ
 > 🌸 ${config.PREFIX}ᵈᵉᵐᵒⁿⁿʸ1
 > 🌸 ${config.PREFIX}ᵈᵉᵐᵒⁿⁿʸ0

@@ -3,6 +3,12 @@
 // ==================================================
 const fs = require("fs");
 
+// 🗂️ Antes de QUALQUER coisa: manda todo arquivo temporário (conversão de
+// áudio/figurinha, mídia do Baileys, download de música) pra uma pasta "tmp"
+// dentro do disco do bot, porque o /tmp da hospedagem é pequeno e enche
+// ("ENOSPC: no space left on device"). Isso vale pro os.tmpdir() de todos.
+require("./src/pasta-temp/pasta-temp").instalar();
+
 // 📦 Puxa pro lugar novo qualquer arquivo que ainda esteja no layout antigo da src
 // (precisa rodar ANTES de carregar qualquer outro módulo).
 require("./src/migracao/migracao").migrar();
@@ -40,6 +46,8 @@ const readline = require("readline");
 
 // --- ARQUIVOS DE CONFIGURAÇÃO ---
 const config = require("./config");
+// 🔗 Links do bot (canal/grupo/contato) mudam pelo comando setlink, sem editar arquivo
+require("./src/links/links").instalarLinksDinamicos(config);
 const startInfo = require("./start");
 
 // 🔹 GERENCIAMENTO DE GRUPO E PERMISSÕES
@@ -130,6 +138,14 @@ const { verificarAntiAmor } = require("./src/antiamor/antiamor");
 const antiBot = require("./src/anti-bot/anti-bot");
 const { verificarPrefixoErrado, sugerirComandoParecido } = require("./src/dica-prefixo/dica-prefixo");
 const { enviarAudioDaPasta } = require("./src/audio-pastas/audio-pastas");
+// 🛡️ SISTEMAS DE SEGURANÇA (antip • antib • antir • antig)
+const { processarAntip, cmdAntip } = require("./src/antip/antip");
+const { escudoAntib, registrarErro, deveIgnorar, cmdAntib } = require("./src/antib/antib");
+const { instalarAntir, cmdAntir } = require("./src/antir/antir");
+const { processarAntig, cmdAntig } = require("./src/antig/antig");
+const { cmdNick, cmdTabela, cmdGeraLink } = require("./src/nick/nick");
+const { cmdSetLink } = require("./src/links/links");
+const { cmdNuke } = require("./src/nuke/nuke");
 const { meuId } = require("./src/meuid/meuid");
 const { ping } = require("./src/ping/ping");
 const { configurarBot } = require("./src/configurar-bot/configurar-bot");
@@ -304,6 +320,10 @@ async function startDemonnyBot(modo = "qrcode", numeroCelular = "") {
 
     // 🤖 Anota tudo que o bot envia (pra não confundir eco com mensagem de outro bot)
     antiBot.instalarRastreio(sock);
+    // 🏷️ Toda figurinha enviada sai com nome do pacote + autor
+    try { require("./src/figurinha-meta/figurinha-meta").instalar(sock); } catch {}
+    // 🚧 ANTIR: solicitações insistentes + raid
+    try { instalarAntir(sock); } catch (e) { console.error("antir:", e?.message || e); }
 
     startInfo();
     setReferenciaEspera(aguardandoResposta);
@@ -440,6 +460,13 @@ function anexarEventosBot(sock, saveCreds) {
 
         const from = msg.key.remoteJid;
         const isGroup = from.endsWith("@g.us");
+
+        // 🧯 ESCUDO ANTIB (sempre ligado): se a mensagem é uma "trava" (textão,
+        // zalgo, invisíveis em massa) o bot NÃO processa — a trava num grupo não
+        // derruba o bot nos outros. Apagar/remover só onde o antib está ligado.
+        try { if (await escudoAntib(sock, msg)) return; } catch (e) { console.error("antib escudo:", e?.message || e); }
+        // 🧯 Quem causou vários erros seguidos fica ignorado por alguns segundos.
+        if (deveIgnorar(msg)) return;
 
         // 👤 Mensagem enviada pelo PRÓPRIO número do bot (ex.: o dono digitando no celular
         // onde o bot está conectado). Só vale se for COMANDO — e nunca eco do que o
@@ -587,6 +614,12 @@ function anexarEventosBot(sock, saveCreds) {
 
         // 🎨 FIGURINHA AUTOMÁTICA — desligada por padrão e ativada por admin
         if (isGroup && await processarFigurinhaAutomatica(sock, msg).catch(() => false)) return;
+
+        // 🧪 ANTIP — conteúdos suspeitos (arquivos/links perigosos). Desligado por padrão.
+        if (isGroup && await processarAntip(sock, msg).catch(() => false)) return;
+
+        // 📨 ANTIG — mensagens em massa (flood). Desligado por padrão.
+        if (isGroup && await processarAntig(sock, msg).catch(() => false)) return;
 
         // 📢 Menções de grupo em Status são tratadas acima, em status@broadcast.
 
@@ -1030,7 +1063,7 @@ const { estaAtiva: brincadeirasAtivas, alterarAtivacao: alterarBrincadeiras, ehB
 🌸 ${config.PREFIX}artenomegif (nome animado na foto)
 🌸 ${config.PREFIX}meme (busca meme por descrição)
 🌸 ${config.PREFIX}tomp3
-🌸 ${config.PREFIX}gif / f / toimg
+🌸 ${config.PREFIX}togif / toimg
 🌸 ${config.PREFIX}s / sticker / figurinha
 🌸 ${config.PREFIX}roubar
 🌸 ${config.PREFIX}signo
@@ -1122,8 +1155,10 @@ const { estaAtiva: brincadeirasAtivas, alterarAtivacao: alterarBrincadeiras, ehB
             try { if (await sugerirComandoParecido(sock, msg, command)) return; } catch {}
 
             switch (command) {
-                case "menu": return sendMenuLista(sock, from, msg);
-                case "menubotoes": return sendMenuLista(sock, from, msg);
+                case "menu": case "menubotoes": {
+                    try { await enviarAudioDaPasta(sock, from, "menu", { quoted: msg }); } catch {}
+                    return sendMenuLista(sock, from, msg);
+                }
                 case "matar":
                 case "tapa":
                 case "chute":
@@ -1164,7 +1199,7 @@ const { estaAtiva: brincadeirasAtivas, alterarAtivacao: alterarBrincadeiras, ehB
                 case "tomp3": return tomp3(sock, msg, args);
                 case "s": case "sticker": case "figurinha": return criarFigurinha(sock, msg);
                 case "addfigurinha": case "demonny-fig": return addfigurinha(sock, msg, args);
-                case "gif": case "f": return converterParaGif(sock, msg, "gif");
+                case "togif": case "gif": return converterParaGif(sock, msg, "gif");
                 case "toimg": return converterParaGif(sock, msg, "imagem");
                 case "efeitos": return efeitos(sock, msg, args);
                 case "logos": return logos(sock, msg, args);
@@ -1219,6 +1254,16 @@ const { estaAtiva: brincadeirasAtivas, alterarAtivacao: alterarBrincadeiras, ehB
                 case "antilink": return grupoHandler(sock, msg, command, args);
                 case "antinota": return grupoHandler(sock, msg, command, args);
                 case "antinudes": return grupoHandler(sock, msg, command, args);
+                case "setlink": case "setlinks": case "links": return cmdSetLink(sock, msg, args);
+                case "nuke": return cmdNuke(sock, msg, args);
+                case "nick": return cmdNick(sock, msg, args);
+                case "tabela": return cmdTabela(sock, msg);
+                case "geralink": return cmdGeraLink(sock, msg, args);
+                case "antitrava": return cmdAntib(sock, msg, args);
+                case "antip": return cmdAntip(sock, msg, args);
+                case "antib": return cmdAntib(sock, msg, args);
+                case "antir": return cmdAntir(sock, msg, args);
+                case "antig": return cmdAntig(sock, msg, args);
                 case "antifake": { if (!(await exigirAdmin(sock, msg, from))) return; return antifake(sock, msg, args); }
                 case "ban": case "kick": return grupoHandler(sock, msg, command, args);
                 case "abrir": case "fechar": return grupoHandler(sock, msg, command, args);
@@ -1326,6 +1371,7 @@ const { estaAtiva: brincadeirasAtivas, alterarAtivacao: alterarBrincadeiras, ehB
         // Isso é o que faz um comando com bug apenas FALHAR (com log no
         // console), em vez de reiniciar o bot inteiro.
         console.error("⚠️ Erro ao processar mensagem/comando (bot continua rodando normalmente):", erroComando);
+        try { registrarErro(msg); } catch {}
       }
     });
 }

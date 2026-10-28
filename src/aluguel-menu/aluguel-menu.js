@@ -16,16 +16,37 @@ function remetente(msg) {
 // 💎 Botão "ALUGAR O BOT" → mostra a lista com os planos.
 async function enviarPlanosVip(sock, jid, msg) {
     const planos = vip.listarPlanos();
-    const rows = planos.map(p => {
+    const textoGruposDe = (p) => {
         const grupos = vip.limiteGruposPorDias(p.dias);
-        const textoGrupos = grupos > 0 ? `${grupos} grupo${grupos > 1 ? 's' : ''}` : 'só no PV (teste)';
-        return linhaLista(`vip_plano:${p.dias}`, `🏘️ ${p.dias} dias — R$ ${p.valor}`, `Aluguel por ${p.dias} dias • ${textoGrupos}`);
-    });
+        return grupos > 0 ? `${grupos} grupo${grupos > 1 ? 's' : ''}` : 'só no PV (teste)';
+    };
+    const rows = planos.map(p =>
+        linhaLista(`vip_plano:${p.dias}`, `👑 ${p.nome} — R$ ${vip.formatarValor(p.valor)}`, `Aluguel por ${p.dias} dias • ${textoGruposDe(p)}`)
+    );
+    const tabela = planos.map(p =>
+        `> 👑 *${p.nome}* ➜ *R$ ${vip.formatarValor(p.valor)}*\n>     ⏳ ${p.dias} dias • 🏘️ ${textoGruposDe(p)}`
+    ).join('\n');
+
+    // 🖼️ Arte dos valores (src/midias/imagens/aluguel.jpg). Sem ela, usa a mídia do menu.
+    let imagemAluguel = null;
+    try {
+        const caminho = require('path').join(__dirname, '../midias/imagens/aluguel.jpg');
+        if (require('fs').existsSync(caminho)) imagemAluguel = require('fs').readFileSync(caminho);
+    } catch {}
 
     return enviarListaWhatsApp(sock, jid, {
-        text: `『 ✦ 』ALUGAR O BOT『 ✦ 』\n> Escolha um plano de aluguel abaixo.\n> O Pix é gerado na hora e o aluguel libera automático assim que cair o pagamento.\n\n『 ✦ 』 ${config.BOT_NAME || 'Demonny Bot'} 『 ✦ 』`,
-        title: '🏘️ PLANOS DE ALUGUEL',
+        text:
+            `『 ✦ 』ALUGUEL DE BOT『 ✦ 』\n\n` +
+            `${tabela}\n\n` +
+            `> 🛡️ Estável e seguro\n` +
+            `> ⚡ Ativação rápida\n` +
+            `> 👥 Suporte 24 horas\n` +
+            `> 🔒 Bot 100% confiável\n\n` +
+            `> Escolha um plano no botão abaixo. O Pix é gerado na hora e o aluguel libera automático assim que cair o pagamento.\n\n` +
+            `『 ✦ 』 ${config.BOT_NAME || 'Demonny Bot'} 『 ✦ 』`,
+        title: '👑 PLANOS DE ALUGUEL',
         quoted: msg,
+        imageBuffer: imagemAluguel || undefined,
         sections: [{ title: 'PLANOS DISPONÍVEIS', rows }]
     });
 }
@@ -68,8 +89,8 @@ async function processarEscolhaVip(sock, msg, idBotao) {
 
         const legenda =
             `『 ✦ 』PIX GERADO『 ✦ 』\n` +
-            `> 🏘️ Plano de aluguel: *${plano.dias} dias*\n` +
-            `> 💰 Valor: *R$ ${plano.valor}*\n` +
+            `> 👑 Plano de aluguel: *${plano.nome}* (${plano.dias} dias)\n` +
+            `> 💰 Valor: *R$ ${vip.formatarValor(plano.valor)}*\n` +
             `> ⏳ Pague em até 30 minutos\n` +
             `> ✅ O aluguel libera *automático* assim que o pagamento cair — não precisa mandar comprovante\n\n` +
             `『 ✦ 』 ${config.BOT_NAME || 'Demonny Bot'} 『 ✦ 』`;
@@ -141,7 +162,7 @@ async function confirmarPagamentoVip(sock, { comprador, from, dias, valor }) {
     const numeroDono = String(config.OWNER_NUMBER || '').replace(/\D/g, '');
     if (numeroDono) {
         await sock.sendMessage(`${numeroDono}@s.whatsapp.net`, {
-            text: `💰 Novo aluguel confirmado!\n👤 @${String(comprador).split('@')[0]}\n🏘️ Plano: ${dias} dias — R$ ${valor}`,
+            text: `💰 Novo aluguel confirmado!\n👤 @${String(comprador).split('@')[0]}\n🏘️ Plano: ${(vip.planoPorDias(dias) || {}).nome || dias + ' dias'} — R$ ${vip.formatarValor(valor)}`,
             mentions: [comprador]
         }).catch(() => {});
     }

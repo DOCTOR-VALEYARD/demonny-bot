@@ -168,8 +168,11 @@ async function menu(sock, from, opcoes = {}) {
 🌸 ${prefix}ᵃʳᵗᵉⁿᵒᵐᵉ (nome na foto)
 🌸 ${prefix}ᵃʳᵗᵉⁿᵒᵐᵉᵍⁱᶠ (nome animado na foto)
 🌸 ${prefix}ᵐᵉᵐᵉ (busca meme por descrição)
+🌸 ${prefix}ⁿⁱᶜᵏ (seu nome em 35 modelos)
+🌸 ${prefix}ᵗᵃᵇᵉˡᵃ (modelos de nick)
+🌸 ${prefix}ᵍᵉʳᵃˡⁱⁿᵏ (link do WhatsApp)
 🌸 ${prefix}ᵗᵒᵐᵖ³
-🌸 ${prefix}ᵍⁱᶠ / ᶠ / ᵗᵒⁱᵐᵍ
+🌸 ${prefix}ᵗᵒᵍⁱᶠ / ᵗᵒⁱᵐᵍ
 🌸 ${prefix}ˢ / ˢᵗⁱᶜᵏᵉʳ / ᶠⁱᵍᵘʳⁱⁿʰᵃ
 🌸 ${prefix}ʳᵒᵘᵇᵃʳ
 🌸 ${prefix}ˢⁱᵍⁿᵒ

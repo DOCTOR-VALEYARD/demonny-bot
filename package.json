@@ -2,10 +2,12 @@
   "name": "demonny-bot",
   "version": "8.0.0",
   "description": "🤖 Demonny Bot - Bot WhatsApp Multifuncional",
-  "main": "demonnybot.js",
+  "main": "demonny.js",
   "scripts": {
-    "start": "node demonnybot.js",
-    "instalar": "bash instalar.sh"
+    "start": "npm install --allow-git=all && node demonny.js",
+    "iniciar": "node demonny.js",
+    "instalar": "bash instalar.sh",
+    "postinstall": "node scripts/baixar-ytdlp.js"
   },
   "author": "𝗔𝗡𝗝𝗜𝗡𝗛𝗢 𝗗𝗘𝗠𝗢𝗡𝗡𝗬🇱🇦🇬🇬🇧🇱",
   "license": "MIT",

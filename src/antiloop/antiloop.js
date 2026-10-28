@@ -14,7 +14,13 @@
    o bloqueio é liberado automaticamente.
 ================================================= */
 
-const estados = new Map(); // chave: `${chatId}::${remetente}` -> { ultimo, contagem, ignorado }
+const estados = new Map(); // chave: `${chatId}::${remetente}` -> { ultimo, contagem, ignorado, t }
+
+// ⏱️ Só conta como repetição se vier em sequência rápida (bot de verdade
+// manda em segundos). Antes contava pra sempre: quem usava ".menu" 3 vezes
+// no dia era bloqueado e o menu "sumia".
+const JANELA_REPETICAO_MS = 15000;      // repetição tem que vir em até 15 s
+const LIBERAR_IGNORADO_MS = 2 * 60000; // bloqueio se desfaz sozinho após 2 min
 
 function chave(chatId, remetente) {
     return `${chatId}::${remetente}`;
@@ -34,9 +40,14 @@ function verificarRepeticao(chatId, remetente, textoOriginal) {
     const k = chave(chatId, remetente);
     let estado = estados.get(k);
     if (!estado) {
-        estado = { ultimo: "", contagem: 0, ignorado: false };
+        estado = { ultimo: "", contagem: 0, ignorado: false, t: 0 };
         estados.set(k, estado);
     }
+    const agora = Date.now();
+    const passou = agora - (estado.t || 0);
+    estado.t = agora;
+    if (estado.ignorado && passou > LIBERAR_IGNORADO_MS) estado.ignorado = false;
+    if (!estado.ignorado && passou > JANELA_REPETICAO_MS) estado.contagem = 0;
 
     // Já estava ignorando esse remetente — só libera se ele mandar algo diferente
     if (estado.ignorado) {

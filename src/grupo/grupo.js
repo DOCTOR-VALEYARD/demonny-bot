@@ -1735,6 +1735,25 @@ async function groupEvents(sock) {
         console.error(`❌ Nenhuma foto de perfil encontrada pra ${usuarioJid} (${numeroTelefone || "sem número"}) — provável causa: a pessoa esconde a foto de perfil pra quem não é contato salvo, ou o JID/LID não bateu com nenhuma tentativa. O card vai usar o número/nome no lugar da foto.`);
       }
 
+      // 🖼️ FOTO DA ENTRADA/SAÍDA — NUNCA fica sem foto:
+      //   1º foto de perfil da pessoa → 2º foto do grupo → 3º foto do menu do bot.
+      // Quando não usa a foto da pessoa, a mensagem avisa o porquê.
+      let fotoCard = fotoBuffer;
+      let avisoFoto = null;
+      if (!fotoCard) {
+        try { fotoCard = await baixarBuffer(await sock.profilePictureUrl(grupoId, "image")); } catch {}
+        if (fotoCard) avisoFoto = `📸 _@${nomeUsuario} não tem foto de perfil (ou esconde a foto de quem não é contato), por isso usei a foto do grupo._`;
+      }
+      if (!fotoCard) {
+        try {
+          const dbCfg = fs.existsSync(botConfigPath) ? JSON.parse(fs.readFileSync(botConfigPath, "utf8")) : {};
+          const caminhoCfg = dbCfg.BOT_PHOTO ? resolverCaminhoSalvo(dbCfg.BOT_PHOTO) : null;
+          if (caminhoCfg && fs.existsSync(caminhoCfg) && /\.(png|jpe?g|webp)$/i.test(caminhoCfg)) fotoCard = fs.readFileSync(caminhoCfg);
+          else if (fs.existsSync(menuPath)) fotoCard = fs.readFileSync(menuPath);
+        } catch {}
+        if (fotoCard) avisoFoto = `📸 _@${nomeUsuario} não tem foto de perfil e o grupo também está sem foto, por isso usei a foto do menu do bot._`;
+      }
+
       // 🖼️ FUNDO: usa sempre a mídia definida no painel de configuração.
       // A troca no painel vale automaticamente nos próximos cards.
       // 🏞️ FOTO DO GRUPO — aparece no cantinho do card de entrada e de saída
@@ -1754,7 +1773,7 @@ async function groupEvents(sock) {
             totalMembros,
             regras: regrasDoGrupo,
             autorAceite: autorDiferente ? normalize(author) : null,
-            semFoto: !fotoBuffer,
+            semFoto: false,
             nomeBot: config.BOT_NAME,
             nomeDono: config.OWNER_NAME
           });
@@ -1762,9 +1781,9 @@ async function groupEvents(sock) {
           await enviarSimples(
             sock, grupoId,
             {
-              caption: mensagemEntrada,
+              caption: avisoFoto ? `${mensagemEntrada}\n\n${avisoFoto}` : mensagemEntrada,
               mentions: autorDiferente ? [usuarioJid, author] : [usuarioJid],
-              imageBuffer: fotoBuffer || undefined,
+              imageBuffer: fotoCard || undefined,
               nativeButtons: config.CHANNEL_URL ? [{
                 name: "cta_url",
                 buttonParamsJson: JSON.stringify({ display_text: "📢 ENTRAR NO CANAL", url: config.CHANNEL_URL })
@@ -1810,8 +1829,9 @@ async function groupEvents(sock) {
           await enviarSimples(
             sock, grupoId,
             {
-              caption: mensagemSaida,
+              caption: avisoFoto ? `${mensagemSaida}\n\n${avisoFoto}` : mensagemSaida,
               mentions: [usuarioJid],
+              imageBuffer: fotoCard || undefined,
               nativeButtons: config.CHANNEL_URL ? [{
                 name: "cta_url",
                 buttonParamsJson: JSON.stringify({ display_text: "📢 ENTRAR NO CANAL", url: config.CHANNEL_URL })

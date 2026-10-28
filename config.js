@@ -77,9 +77,9 @@ const config = {
   // Planos de aluguel do bot: dias de aluguel e valor em reais.
   // Pode editar aqui os valores/prazos padrão.
   PLANOS_ALUGUEL: [
-    { dias: 3, valor: 5 },
-    { dias: 15, valor: 25 },
-    { dias: 30, valor: 40 }
+    { nome: "3 DIAS", dias: 3, valor: 10 },
+    { nome: "QUINZENA", dias: 15, valor: 25 },
+    { nome: "1 ANO", dias: 365, valor: 300 }
   ],
 
 

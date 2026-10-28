@@ -32,8 +32,8 @@ function listarPlanos() {
     const configurados = config.PLANOS_ALUGUEL || config.PLANOS_VIP; // PLANOS_VIP = nome antigo
     const planos = Array.isArray(configurados) && configurados.length
         ? configurados
-        : [{ dias: 3, valor: 5 }, { dias: 15, valor: 25 }, { dias: 30, valor: 40 }];
-    return planos.map(p => ({ dias: Number(p.dias), valor: Number(p.valor) }));
+        : [{ nome: "3 DIAS", dias: 3, valor: 10 }, { nome: "QUINZENA", dias: 15, valor: 25 }, { nome: "1 ANO", dias: 365, valor: 300 }];
+    return planos.map(p => ({ nome: p.nome || `${p.dias} DIAS`, dias: Number(p.dias), valor: Number(p.valor) }));
 }
 
 function planoPorDias(dias) {
@@ -118,7 +118,13 @@ function formatarData(ms) {
     return new Date(ms).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
+// 💰 10 → "10,00"
+function formatarValor(v) {
+    return Number(v || 0).toFixed(2).replace(".", ",");
+}
+
 module.exports = {
+    formatarValor,
     listarPlanos,
     planoPorDias,
     ehVip,

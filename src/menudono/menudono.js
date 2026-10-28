@@ -19,7 +19,7 @@ async function menudono(sock, msg) {
 🌷┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌷
 🌸 ${config.PREFIX}ᵖˡᵃʸ [nome]
 🌸 ${config.PREFIX}ˢ / ˢᵗⁱᶜᵏᵉʳ
-🌸 ${config.PREFIX}ᶠ / ᵍⁱᶠ
+🌸 ${config.PREFIX}ᵗᵒᵍⁱᶠ / ᵍⁱᶠ
 🌸 ${config.PREFIX}ᵗᵒⁱᵐᵍ
 
 🌷┈┈┈┈┈┈┈┈┈┈┈┈┈┈🌷
@@ -44,7 +44,9 @@ async function menudono(sock, msg) {
 🌷┈┈┈┈┈┈┈┈┈┈┈┈┈┷🌷
 🌸 ${config.PREFIX}ᵃᵗⁱᵛᵃʳ
 🌸 ${config.PREFIX}ᵈᵉˢᵃᵗⁱᵛᵃʳ
+🌸 ${config.PREFIX}ⁿᵘᵏᵉ (limpar o grupo)
 🌸 ${config.PREFIX}ᶜᵒⁿᶠⁱᵍᵘʳᵃʳ
+🌸 ${config.PREFIX}ˢᵉᵗˡⁱⁿᵏ (canal / grupo / contato)
 
 💐┈┈┈┈┈┈┈┈┈┈┈┈┈┈💐
 🌷 ᴾˡᵃᵗᵃᶠᵒʳᵐᵃ: ${config.BOT_NAME}

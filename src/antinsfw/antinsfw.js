@@ -16,6 +16,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const { arquivoTemp } = require("../pasta-temp/pasta-temp");
 const https = require("https");
 const { exec } = require("child_process");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
@@ -104,8 +105,8 @@ function converterParaJpg(caminhoOrigem, caminhoJpg, ehVideo) {
 async function analisarMidiaDaMensagem(mensagemConteudo, tipoBaileys, ehVideo) {
     const idTemp = Date.now() + "_" + Math.floor(Math.random() * 10000);
     const extensaoOrigem = ehVideo ? "mp4" : (tipoBaileys === "sticker" ? "webp" : "jpg");
-    const caminhoOrigem = path.join(os.tmpdir(), `nsfw_${idTemp}.${extensaoOrigem}`);
-    const caminhoJpg = path.join(os.tmpdir(), `nsfw_${idTemp}.jpg`);
+    const caminhoOrigem = arquivoTemp(`nsfw_${idTemp}.${extensaoOrigem}`);
+    const caminhoJpg = arquivoTemp(`nsfw_${idTemp}.jpg`);
 
     try {
         const stream = await downloadContentFromMessage(mensagemConteudo, tipoBaileys);

@@ -81,7 +81,11 @@ function ehRepeticao(msg, texto, ehDono = false) {
     const chave = chaveDeRepeticao(msg, texto);
     if (!chave) return false;
     const quando = respondidos.get(chave);
-    return !!quando && Date.now() - quando < janela;
+    // Comando com prefixo (.menu, .play...) é pedido de verdade: só ignora
+    // se vier duplicado em até 4 s. Antes ficava 60 s calado e o menu "sumia".
+    const ehComando = String(texto || "").trim().startsWith(config.PREFIX);
+    const limite = ehComando ? Math.min(janela, 4000) : janela;
+    return !!quando && Date.now() - quando < limite;
 }
 
 // Anota que chegou essa mensagem (pra saber, depois, qual delas o bot respondeu).

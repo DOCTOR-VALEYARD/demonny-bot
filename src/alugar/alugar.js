@@ -70,7 +70,7 @@ async function alugar(sock, msg, args) {
                     const ehVipMasSemGrupo = vip.ehVip(numeroRemetente);
                     return sock.sendMessage(from, {
                         text: ehVipMasSemGrupo
-                            ? `⚠️ Seu plano de aluguel atual não inclui ativar o bot em grupos.\n💎 Assine um plano de *15 dias* (1 grupo) ou *30 dias* (2 grupos) pra liberar isso.\n\nUse ${config.PREFIX}alugarbot pra ver os planos.`
+                            ? `⚠️ Seu plano de aluguel atual não inclui ativar o bot em grupos.\n💎 Assine a *QUINZENA* (1 grupo) ou o plano de *1 ANO* (2 grupos) pra liberar isso.\n\nUse ${config.PREFIX}alugarbot pra ver os planos.`
                             : `⚠️ Só quem tem um *plano de aluguel* ativo pode ativar o bot em grupos.\n💎 Use ${config.PREFIX}alugarbot pra ver os planos.`
                     }, { quoted: msg });
                 }
@@ -144,7 +144,7 @@ ${config.PREFIX}alugar 0  → desativa o bot aqui
     // Qualquer outra pessoa (ou uso fora de grupo): mensagem de
     // divulgação de sempre, sem mexer em nada.
     // ──────────────────────────────────────────────────────────────
-    const resp = `💼 *ALUGAR ${config.BOT_NAME}*\n\nInteressado em alugar este bot?\n\n📞 Contato: ${config.OWNER_NUMBER}\n👑 Criador: ${config.OWNER_NAME}\n\nEntre em contato para mais informações!\n\n💎 Veja os planos e valores com ${config.PREFIX}alugarbot`;
+    const resp = `💼 *ALUGAR ${config.BOT_NAME}*\n\nInteressado em alugar este bot?\n\n📞 Contato: ${require('../links/links').numeroDoContato()}\n👑 Criador: ${config.OWNER_NAME}\n\nEntre em contato para mais informações!\n\n💎 Veja os planos e valores com ${config.PREFIX}alugarbot`;
     await sock.sendMessage(from, { text: resp }, { quoted: msg });
 }
 
